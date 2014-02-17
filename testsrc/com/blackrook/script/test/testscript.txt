@@ -1,0 +1,13 @@
+! type: "butt"
+:begin
+	set x 10.0
+:loop
+	goeq x 0 end
+	gosub decrement
+	goto loop
+:decrement
+	println x
+	dec x
+	return
+:end
+	println "end"
