@@ -1,5 +1,6 @@
 /bin
 /build
+/deps
 /.idea
 build.properties
 .settings

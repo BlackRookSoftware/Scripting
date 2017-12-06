@@ -1,6 +1,6 @@
 # Black Rook Scripting
 
-Copyright (c) 2009-2014 Black Rook Software. All rights reserved.  
+Copyright (c) 2009-2017 Black Rook Software. All rights reserved.  
 [http://blackrooksoftware.com/projects.htm?name=scripting](http://blackrooksoftware.com/projects.htm?name=scripting)  
 [https://github.com/BlackRookSoftware/Scripting](https://github.com/BlackRookSoftware/Scripting)
 
@@ -31,6 +31,24 @@ and can serve as a base for more powerful script types.
 Contained in this release is a series of libraries that enable the user to
 create scripts and other interpreted data of this type and link them to
 a host program.
+
+### Compiling with Ant
+
+To download the dependencies for this project (if you didn't set that up yourself already), type:
+
+	ant dependencies
+
+A *build.properties* file will be created/appended to with the *dev.base* property set.
+	
+To compile this library with Apache Ant, type:
+
+	ant compile
+
+To make a JAR of this library, type:
+
+	ant jar
+
+And it will be placed in the *build/jar* directory.
 
 ### Other
 
