@@ -92,15 +92,14 @@ public final class SimpleScriptFactory
 		return parser.getScript();
 	}
 	
-	/** The lexer that reads script text. */
-	private static class SLexer extends Lexer
+	private static class SKernel extends LexerKernel
 	{
 		public static final int TYPE_COMMENT = 0;
 		public static final int TYPE_COLON = 1;
 		public static final int TYPE_EXPOINT = 2;
 		
-		private static final LexerKernel KERNEL = new LexerKernel()
-		{{
+		SKernel()
+		{
 			addDelimiter(":", TYPE_COLON);
 			addDelimiter("!", TYPE_EXPOINT);
 			addCommentLineDelimiter("//", TYPE_COMMENT);
@@ -109,8 +108,14 @@ public final class SimpleScriptFactory
 			addStringDelimiter('\"', '\"');
 			addStringDelimiter('\'', '\'');
 			setIncludeNewlines(true);
-	}};
-		
+		}
+	}
+	
+	private static final SKernel KERNEL = new SKernel();
+
+	/** The lexer that reads script text. */
+	private static class SLexer extends Lexer
+	{
 		/** Creates a new SLexer for tokenizing a script file. */
 		public SLexer(String streamName, Reader reader)
 		{
@@ -210,21 +215,21 @@ public final class SimpleScriptFactory
 		/** Called in the starting state. */
 		protected boolean StateStart()
 		{
-			if (matchType(SLexer.TYPE_COLON))
+			if (matchType(SKernel.TYPE_COLON))
 			{
 				currentState = STATE_LABEL;
 				return true;
 			}
-			else if (matchType(SLexer.TYPE_EXPOINT))
+			else if (matchType(SKernel.TYPE_EXPOINT))
 			{
 				currentState = STATE_METADATA;
 				return true;
 			}
-			else if (matchType(SLexer.TYPE_DELIM_NEWLINE))
+			else if (matchType(SKernel.TYPE_DELIM_NEWLINE))
 			{
 				return true;
 			}
-			else if (!currentType(SLexer.TYPE_ILLEGAL, SLexer.TYPE_NUMBER, SLexer.TYPE_STRING))
+			else if (!currentType(SKernel.TYPE_ILLEGAL, SKernel.TYPE_NUMBER, SKernel.TYPE_STRING))
 			{
 				currentState = STATE_COMMAND;
 				currentCommand = currentToken().getLexeme();
@@ -256,7 +261,7 @@ public final class SimpleScriptFactory
 		/** Called in the label state: saw colon, need label. */
 		protected boolean StateLabel()
 		{
-			if (currentType(SLexer.TYPE_IDENTIFIER))
+			if (currentType(SKernel.TYPE_IDENTIFIER))
 			{
 				script.setLabel(currentToken().getLexeme(), currentIndex);
 				currentState = STATE_LABEL_END;
@@ -271,7 +276,7 @@ public final class SimpleScriptFactory
 		/** Called in the label state: saw colon and label, need newline. */
 		protected boolean StateLabelEnd()
 		{
-			if (matchType(SLexer.TYPE_DELIM_NEWLINE))
+			if (matchType(SKernel.TYPE_DELIM_NEWLINE))
 			{
 				currentState = STATE_START;
 				return true;
@@ -284,7 +289,7 @@ public final class SimpleScriptFactory
 		/** Called in the command state: saw command, reading arguments. */
 		protected boolean StateCommand()
 		{
-			if (currentType(SLexer.TYPE_NUMBER))
+			if (currentType(SKernel.TYPE_NUMBER))
 			{
 				if (!checkArgument())
 					return false;
@@ -300,7 +305,7 @@ public final class SimpleScriptFactory
 				nextToken();
 				return true;
 			}
-			else if (currentType(SLexer.TYPE_STRING))
+			else if (currentType(SKernel.TYPE_STRING))
 			{
 				if (!checkArgument())
 					return false;
@@ -308,7 +313,7 @@ public final class SimpleScriptFactory
 				nextToken();
 				return true;
 			}
-			else if (currentType(SLexer.TYPE_IDENTIFIER))
+			else if (currentType(SKernel.TYPE_IDENTIFIER))
 			{
 				if (!checkArgument())
 					return false;
@@ -316,7 +321,7 @@ public final class SimpleScriptFactory
 				nextToken();
 				return true;
 			}
-			else if (currentType(SLexer.TYPE_DELIM_NEWLINE))
+			else if (currentType(SKernel.TYPE_DELIM_NEWLINE))
 			{
 				if (currentCommandEntry != null)
 				{
@@ -350,7 +355,7 @@ public final class SimpleScriptFactory
 		/** Called in the meta data state: saw EXCLAMATION POINT, need KEY, COLON, VALUE. */
 		protected boolean StateMetaData()
 		{
-			if (!currentType(SLexer.TYPE_IDENTIFIER))
+			if (!currentType(SKernel.TYPE_IDENTIFIER))
 			{
 				addErrorMessage("Expected identifier for key.");
 				return false;
@@ -359,13 +364,13 @@ public final class SimpleScriptFactory
 			String key = currentToken().getLexeme();
 			nextToken();
 			
-			if (!matchType(SLexer.TYPE_COLON))
+			if (!matchType(SKernel.TYPE_COLON))
 			{
 				addErrorMessage("Expected ':' after key.");
 				return false;
 			}
 			
-			if (!currentType(SLexer.TYPE_IDENTIFIER, SLexer.TYPE_STRING, SLexer.TYPE_NUMBER, SLexer.TYPE_FLOAT))
+			if (!currentType(SKernel.TYPE_IDENTIFIER, SKernel.TYPE_STRING, SKernel.TYPE_NUMBER, SKernel.TYPE_FLOAT))
 			{
 				addErrorMessage("Expected identifier, string, or numeric value.");
 				return false;
@@ -374,7 +379,7 @@ public final class SimpleScriptFactory
 			String value = currentToken().getLexeme();
 			nextToken();
 
-			if (!matchType(SLexer.TYPE_DELIM_NEWLINE))
+			if (!matchType(SKernel.TYPE_DELIM_NEWLINE))
 			{
 				addErrorMessage("Expected end-of-line.");
 				return false;
@@ -398,7 +403,7 @@ public final class SimpleScriptFactory
 			if (checkType != null) switch (checkType)
 			{
 				case INTEGER:
-					if (type != SLexer.TYPE_NUMBER)
+					if (type != SKernel.TYPE_NUMBER)
 						addErrorMessage("Expected integer numeric argument for command '"+currentCommand+"'.");
 					else
 					{
@@ -410,15 +415,15 @@ public final class SimpleScriptFactory
 					}
 					break;
 				case NUMBER:
-					if (type != SLexer.TYPE_NUMBER)
+					if (type != SKernel.TYPE_NUMBER)
 						addErrorMessage("Expected numeric argument for command '"+currentCommand+"'.");
 					break;
 				case IDENTIFIER:
-					if (type != SLexer.TYPE_IDENTIFIER)
+					if (type != SKernel.TYPE_IDENTIFIER)
 						addErrorMessage("Expected identifier argument for command '"+currentCommand+"'.");
 					break;
 				case STRING:
-					if (type != SLexer.TYPE_STRING)
+					if (type != SKernel.TYPE_STRING)
 						addErrorMessage("Expected string argument for command '"+currentCommand+"'.");
 					break;
 				default:
@@ -428,23 +433,6 @@ public final class SimpleScriptFactory
 			return true;
 		}
 		
-		@Override
-		protected String getTypeErrorText(int tokenType)
-		{
-			switch (tokenType)
-			{
-				case SLexer.TYPE_IDENTIFIER:
-					return "Expected identifier.";
-				case SLexer.TYPE_NUMBER:
-				case SLexer.TYPE_FLOAT:
-					return "Expected numeric token.";
-				case SLexer.TYPE_STRING:
-					return "Expected string.";
-				case SLexer.TYPE_DELIM_NEWLINE:
-					return "Expected end-of-line.";
-			}
-			return "Expected some kind of token or whatever.";
-		}
 	}
 	
 }
